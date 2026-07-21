@@ -140,6 +140,7 @@
     font-family:'Baloo 2',cursive; font-weight:800; font-size:20px; color:#fff; flex-shrink:0;
     border:2px solid rgba(255,255,255,0.6);
     box-shadow:0 2px 4px rgba(0,0,0,0.35), inset 0 2px 3px rgba(255,255,255,0.5);
+    position:relative; overflow:hidden;
   }
   .pname{ font-family:'Baloo 2',cursive; font-weight:700; font-size:16px; margin:0; color:var(--ink); }
   .mood-row{ font-size:11px; color:var(--steel); margin-top:2px; }
@@ -262,6 +263,87 @@
   .badge.b3{ color:var(--sun); border-color:var(--sun); text-shadow:0 0 3px var(--sun); }
   .foot-note{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--steel); }
 
+  /* ============ NEW: photo uploads, MySpace widgets, Tumblr tags/reblog ============ */
+
+  .online-dot{ width:7px;height:7px;border-radius:50%; background:#3FE07A; box-shadow:0 0 0 2px #fff, 0 0 5px #3FE07A; display:inline-block; margin-left:6px; animation:onlinePulse 1.6s ease-in-out infinite; }
+  @keyframes onlinePulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+
+  .pfp-photo{ width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; }
+  .pfp-upload{ cursor:pointer; }
+  .pfp-edit-hint{
+    position:absolute; inset:0; background:rgba(0,0,0,0.5); color:#fff; font-size:8.5px; line-height:1.2;
+    display:flex; align-items:center; justify-content:center; text-align:center; opacity:0;
+    transition:opacity .15s ease; font-family:'JetBrains Mono',monospace; border-radius:50%;
+  }
+  .pfp-upload:hover .pfp-edit-hint{ opacity:1; }
+  .pfp-file-input{ display:none; }
+
+  .now-playing{ margin-top:11px; display:flex; align-items:center; gap:8px; background:linear-gradient(180deg,#2b2f33,#1a1d20); border:1px solid #000; border-radius:8px; padding:6px 9px; box-shadow:inset 0 1px 2px rgba(255,255,255,0.08), 0 2px 4px rgba(0,0,0,0.25); }
+  .np-btn{ width:22px;height:22px;border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff,#aaa 60%,#666); border:1px solid #000; cursor:pointer; display:flex;align-items:center;justify-content:center; font-size:9px; flex-shrink:0; padding:0; }
+  .np-eq{ display:flex; align-items:flex-end; gap:2px; height:15px; flex-shrink:0; }
+  .np-eq span{ width:3px; background:var(--lime); border-radius:1px; height:3px; display:block; box-shadow:0 0 3px var(--lime); }
+  .np-eq.playing span{ animation: eqBounce 0.9s ease-in-out infinite; }
+  .np-eq span:nth-child(2){animation-delay:.15s;} .np-eq span:nth-child(3){animation-delay:.3s;} .np-eq span:nth-child(4){animation-delay:.45s;}
+  @keyframes eqBounce{ 0%,100%{height:3px;} 50%{height:14px;} }
+  .np-track{ flex:1; min-width:0; }
+  .np-label{ font-size:7.5px; color:#7a9a7a; letter-spacing:1px; text-transform:uppercase; font-family:'JetBrains Mono',monospace; }
+  .np-input{ width:100%; background:transparent; border:none; outline:none; color:var(--lime); font-family:'JetBrains Mono',monospace; font-size:11px; text-shadow:0 0 3px rgba(198,255,61,0.7); padding:0; }
+  .np-input::placeholder{ color:#5c7a5c; }
+
+  .theme-row{ display:flex; gap:6px; margin-top:11px; align-items:center; }
+  .theme-swatch{ width:20px;height:20px;border-radius:6px; border:2px solid rgba(255,255,255,0.75); cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.35); flex-shrink:0; }
+  .theme-swatch.active{ border-color:var(--glass-blue-dark); box-shadow:0 0 0 2px var(--glass-blue-dark); }
+  .theme-swatch.t-default{ background:linear-gradient(135deg,#F4F6F8,#C9D0D6); }
+  .theme-swatch.t-glitter{ background:linear-gradient(135deg,#FF3E96,#7B5CFF,#29D6FF); }
+  .theme-swatch.t-hearts{ background:#FFB8D9; }
+  .theme-swatch.t-camo{ background:#5C6B2C; }
+  .theme-swatch.t-static{ background:repeating-conic-gradient(#111 0% 25%, #eee 0% 50%) 50%/6px 6px; }
+
+  .profile-card.skin-glitter{
+    background-image:
+      radial-gradient(circle at 15% 25%, rgba(255,255,255,.95) 0 2px, transparent 3px),
+      radial-gradient(circle at 75% 15%, rgba(255,255,255,.8) 0 1.5px, transparent 2.5px),
+      radial-gradient(circle at 40% 85%, rgba(255,255,255,.9) 0 2px, transparent 3px),
+      radial-gradient(circle at 90% 70%, rgba(255,255,255,.7) 0 1.5px, transparent 2.5px),
+      linear-gradient(135deg, #FF3E96, #7B5CFF 55%, #29D6FF);
+    background-size: 46px 46px, 32px 32px, 54px 54px, 38px 38px, 100% 100%;
+  }
+  .profile-card.skin-hearts{ background-color:#FFE3EF; background-image: radial-gradient(#FF9EC4 16%, transparent 17%), radial-gradient(#FFC7DF 14%, transparent 15%); background-size:26px 26px, 26px 26px; background-position:0 0, 13px 13px; }
+  .profile-card.skin-camo{ background-color:#5C6B2C; background-image: radial-gradient(#3E4A1D 22%, transparent 23%), radial-gradient(#7C8C46 22%, transparent 23%); background-size:36px 36px, 26px 26px; background-position:0 0, 14px 12px; }
+  .profile-card.skin-static{ background-color:#161616; background-image: repeating-conic-gradient(#282828 0% 25%, #383838 0% 50%); background-size:4px 4px; }
+  .profile-card.skin-glitter .pname, .profile-card.skin-camo .pname, .profile-card.skin-static .pname,
+  .profile-card.skin-glitter .mood-row, .profile-card.skin-camo .mood-row, .profile-card.skin-static .mood-row,
+  .profile-card.skin-glitter .about-label, .profile-card.skin-camo .about-label, .profile-card.skin-static .about-label{
+    color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.6);
+  }
+  .profile-card.skin-glitter .mood-input, .profile-card.skin-camo .mood-input, .profile-card.skin-static .mood-input{ color:#fff; }
+  .profile-card.skin-glitter .mood-input::placeholder, .profile-card.skin-camo .mood-input::placeholder, .profile-card.skin-static .mood-input::placeholder{ color:rgba(255,255,255,0.65); }
+
+  .composer-photo-row{ display:flex; align-items:flex-start; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .photo-attach-btn{ background:#fff; border:1px solid #C3CAD0; border-radius:6px; padding:6px 11px; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:var(--steel); cursor:pointer; }
+  .photo-attach-btn:hover{ border-color:var(--glass-blue); color:var(--glass-blue-dark); }
+  .photo-preview-wrap{ position:relative; display:inline-block; }
+  .photo-preview-wrap img{ max-width:120px; max-height:120px; border-radius:6px; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.35); display:block; }
+  .photo-remove{ position:absolute; top:-7px; right:-7px; width:18px;height:18px;border-radius:50%; background:var(--pink); color:#fff; border:2px solid #fff; font-size:10px; cursor:pointer; line-height:1; padding:0; }
+
+  .tags-input{ width:100%; border:1px solid #C3CAD0; border-radius:6px; padding:7px 10px; font-family:'JetBrains Mono',monospace; font-size:11.5px; outline:none; margin-top:10px; background:#fff; color:var(--ink); }
+
+  .post-photo{ margin:0 0 12px; border-radius:6px; overflow:hidden; border:5px solid #fff; box-shadow:0 3px 9px rgba(0,0,0,.32); transform:rotate(-0.6deg); }
+  .post-photo img{ width:100%; display:block; }
+
+  .tag-pills{ display:flex; flex-wrap:wrap; gap:5px; margin:0 0 12px; }
+  .tag-pill{ background:#EAF3FF; border:1px solid #B9D7F5; color:var(--glass-blue-dark); font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; padding:2px 9px; border-radius:999px; cursor:pointer; }
+  .tag-pill:hover{ background:#D6EAFF; }
+  .tag-filter-banner{ display:flex; align-items:center; justify-content:center; gap:9px; margin-bottom:16px; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--steel); }
+  .tag-filter-banner button{ background:#fff; border:1px solid var(--steel); border-radius:999px; padding:3px 11px; cursor:pointer; font-size:10px; font-family:'JetBrains Mono',monospace; }
+
+  .reblog-head{ display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--steel); background:#EEF2F5; border:1px dashed var(--chrome-3); border-radius:6px; padding:5px 9px; margin-bottom:9px; }
+  .reblog-btn{ background:none;border:none;cursor:pointer; font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:700; color:var(--steel); display:flex; align-items:center; gap:5px; }
+  .reblog-btn:hover{ color:var(--glass-blue-dark); }
+
+  .badge.blinkie{ animation: blinkFlash 1.1s steps(2) infinite; }
+  @keyframes blinkFlash{ 50%{ opacity:0.3; } }
+
 </style>
 </head>
 <body>
@@ -329,6 +411,12 @@
       <input type="text" id="feelingInput" class="feeling-input mono" placeholder="required...">
     </div>
     <div class="emoji-row" id="emojiRow"></div>
+    <div class="composer-photo-row">
+      <button type="button" class="photo-attach-btn" id="photoAttachBtn">📷 add photo</button>
+      <input type="file" accept="image/*" id="photoFileInput" style="display:none;">
+      <div id="photoPreviewWrap"></div>
+    </div>
+    <input type="text" id="tagsInput" class="tags-input" placeholder="tags (comma separated, optional)">
     <div class="composer-foot">
       <button class="glossy-btn" id="postBtn" disabled>post it!</button>
     </div>
@@ -344,6 +432,9 @@
     <span class="badge">THE</span>
     <span class="badge b2">PAD</span>
     <span class="badge b3">.COM</span>
+    <span class="badge b2 blinkie">★ TOP FRIENDS ★</span>
+    <span class="badge blinkie">UNDER CONSTRUCTION</span>
+    <span class="badge b3">100% ORGANIC HTML</span>
   </div>
   <div class="foot-note">ThePad.com</div>
 </footer>
@@ -366,6 +457,46 @@
 
   const EMOJI_OPTIONS = ['😊','😂','😍','😭','😤','😴','🥳','😬','🙄','💀','😎','🥺'];
   let selectedEmoji = null;
+  let composerPhoto = null;
+  let activeTagFilter = null;
+  const nowPlayingActive = {};
+
+  // ============ STORAGE ADAPTER ============
+  // Inside a Claude.ai artifact, window.storage exists and syncs both of you already.
+  // Once this file is hosted standalone (e.g. from your Mac), window.storage does NOT
+  // exist, so this falls back to localStorage — that works, but it's local to each of
+  // your own browsers until Supabase is wired in (no cross-device sync).
+  //
+  // TO HOOK UP SUPABASE LATER:
+  //   1. Add <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script> to <head>
+  //   2. const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  //   3. Create a simple key/value table, e.g.:
+  //        create table pad_kv (key text primary key, value text, updated_at timestamptz default now());
+  //   4. Replace the two method bodies below with:
+  //        async get(key){ const {data} = await supabase.from('pad_kv').select('value').eq('key', key).maybeSingle(); return data ? {value: data.value} : null; }
+  //        async set(key, value){ await supabase.from('pad_kv').upsert({key, value, updated_at: new Date()}); return {value}; }
+  //   5. For real-time sync (no polling needed), add a supabase.channel('pad').on('postgres_changes', {event:'*', schema:'public', table:'pad_kv'}, () => loadAll()).subscribe()
+  //   6. The `shared` param can just be ignored/dropped once every key lives in your own database.
+  const DB = (function(){
+    const hasArtifactStorage = typeof window.storage !== 'undefined';
+    return {
+      backend: hasArtifactStorage ? 'artifact' : 'local',
+      async get(key, shared){
+        if(hasArtifactStorage){
+          try{ return await window.storage.get(key, shared); }catch(e){ return null; }
+        }
+        const raw = localStorage.getItem('thepad:' + key);
+        return raw ? { value: raw } : null;
+      },
+      async set(key, value, shared){
+        if(hasArtifactStorage){
+          try{ return await window.storage.set(key, value, shared); }catch(e){ return null; }
+        }
+        try{ localStorage.setItem('thepad:' + key, value); }catch(e){ console.error('local storage full?', e); }
+        return { value };
+      }
+    };
+  })();
 
   const feedEl = document.getElementById('feed');
   const postInput = document.getElementById('postInput');
@@ -376,6 +507,58 @@
   const profilesEl = document.getElementById('profiles');
   const odometerEl = document.getElementById('odometer');
   const visitorRankEl = document.getElementById('visitorRank');
+  const photoAttachBtn = document.getElementById('photoAttachBtn');
+  const photoFileInput = document.getElementById('photoFileInput');
+  const photoPreviewWrap = document.getElementById('photoPreviewWrap');
+  const tagsInput = document.getElementById('tagsInput');
+
+  function renderPhotoPreview(){
+    photoPreviewWrap.innerHTML = composerPhoto ? `
+      <div class="photo-preview-wrap">
+        <img src="${composerPhoto}" alt="">
+        <button type="button" class="photo-remove" id="photoRemoveBtn">✕</button>
+      </div>` : '';
+    const rm = document.getElementById('photoRemoveBtn');
+    if(rm) rm.addEventListener('click', () => {
+      composerPhoto = null;
+      photoFileInput.value = '';
+      renderPhotoPreview();
+    });
+  }
+
+  photoAttachBtn.addEventListener('click', () => photoFileInput.click());
+  photoFileInput.addEventListener('change', async () => {
+    const file = photoFileInput.files[0];
+    if(!file) return;
+    try{
+      composerPhoto = await fileToResizedDataURL(file, 720);
+      renderPhotoPreview();
+    }catch(e){ console.error("couldn't process that image", e); }
+  });
+
+  function fileToResizedDataURL(file, maxDim){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if(width > maxDim || height > maxDim){
+            if(width > height){ height = Math.round(height * maxDim / width); width = maxDim; }
+            else { width = Math.round(width * maxDim / height); height = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 
   function wheelSVG(filled){
     const c = filled ? "#fff" : "#6B747B";
@@ -398,10 +581,30 @@
     return div.innerHTML;
   }
 
+  function avatarInner(user){
+    const u = USERS[user] || { color:"#999", initial:"?" };
+    const pic = profiles[user] && profiles[user].pic;
+    return pic ? `<img class="pfp-photo" src="${pic}" alt="">` : u.initial;
+  }
+
   function pfpHTML(user, cls, size){
     const u = USERS[user] || { color:"#999", initial:"?" };
+    const pic = profiles[user] && profiles[user].pic;
     const style = size ? `style="width:${size}px;height:${size}px;font-size:${Math.floor(size*0.42)}px;background:${u.color}"` : `style="background:${u.color}"`;
-    return `<div class="${cls}" ${style}>${u.initial}</div>`;
+    return `<div class="${cls}" ${style}>${avatarInner(user)}</div>`;
+  }
+
+  function profilePfpHTML(user){
+    const u = USERS[user] || { color:"#999", initial:"?" };
+    const inner = avatarInner(user);
+    if(user !== currentUser){
+      return `<div class="pfp" style="width:52px;height:52px;font-size:20px;background:${u.color}">${inner}</div>`;
+    }
+    return `<label class="pfp pfp-upload" style="width:52px;height:52px;font-size:20px;background:${u.color}">
+      ${inner}
+      <span class="pfp-edit-hint">change<br>photo</span>
+      <input type="file" accept="image/*" class="pfp-file-input" data-user="${user}">
+    </label>`;
   }
 
   function renderEmojiPicker(){
@@ -425,8 +628,9 @@
   function setActiveUserUI(){
     document.getElementById('btn-izzy').classList.toggle('active', currentUser === 'izzywizzyletsgetbusy');
     document.getElementById('btn-rozza').classList.toggle('active', currentUser === 'rozza69');
-    composerPfp.style.background = USERS[currentUser].color;
-    composerPfp.textContent = USERS[currentUser].initial;
+    const pic = profiles[currentUser] && profiles[currentUser].pic;
+    composerPfp.style.background = pic ? 'transparent' : USERS[currentUser].color;
+    composerPfp.innerHTML = pic ? `<img class="pfp-photo" src="${pic}" alt="">` : USERS[currentUser].initial;
   }
 
   function renderOdometer(n){
@@ -437,9 +641,9 @@
   async function bumpVisitorCount(){
     let count = 1;
     try{
-      const res = await window.storage.get(VISITOR_KEY, true);
+      const res = await DB.get(VISITOR_KEY, true);
       count = (res && res.value) ? parseInt(res.value, 10) + 1 : 1;
-      await window.storage.set(VISITOR_KEY, String(count), true);
+      await DB.set(VISITOR_KEY, String(count), true);
     }catch(e){
       count = Math.floor(Math.random()*500)+1;
     }
@@ -449,28 +653,48 @@
 
   async function loadAll(){
     try{
-      const res = await window.storage.get(POSTS_KEY, true);
+      const res = await DB.get(POSTS_KEY, true);
       posts = res && res.value ? JSON.parse(res.value) : seedPosts();
     }catch(e){
       posts = seedPosts();
-      try{ await window.storage.set(POSTS_KEY, JSON.stringify(posts), true); }catch(e2){}
+      try{ await DB.set(POSTS_KEY, JSON.stringify(posts), true); }catch(e2){}
     }
     try{
-      const res2 = await window.storage.get(PROFILES_KEY, true);
+      const res2 = await DB.get(PROFILES_KEY, true);
       if(res2 && res2.value) profiles = JSON.parse(res2.value);
-      else await window.storage.set(PROFILES_KEY, JSON.stringify(profiles), true);
+      else await DB.set(PROFILES_KEY, JSON.stringify(profiles), true);
     }catch(e){}
     renderProfiles();
     render();
+    setActiveUserUI();
   }
 
   async function savePosts(){
-    try{ await window.storage.set(POSTS_KEY, JSON.stringify(posts), true); }
+    try{ await DB.set(POSTS_KEY, JSON.stringify(posts), true); }
     catch(e){ console.error("couldn't save the bulletin", e); }
   }
   async function saveProfiles(){
-    try{ await window.storage.set(PROFILES_KEY, JSON.stringify(profiles), true); }
+    try{ await DB.set(PROFILES_KEY, JSON.stringify(profiles), true); }
     catch(e){ console.error("couldn't save profile", e); }
+  }
+
+  function startPolling(){
+    // Lightweight "good enough" live sync for the shared KV backend. If you move to
+    // Supabase, swap this for a realtime channel subscription instead (see notes above).
+    setInterval(async () => {
+      try{
+        const res = await DB.get(POSTS_KEY, true);
+        if(res && res.value){
+          const incoming = JSON.parse(res.value);
+          if(JSON.stringify(incoming) !== JSON.stringify(posts)){ posts = incoming; render(); }
+        }
+        const res2 = await DB.get(PROFILES_KEY, true);
+        if(res2 && res2.value){
+          const incomingP = JSON.parse(res2.value);
+          if(JSON.stringify(incomingP) !== JSON.stringify(profiles)){ profiles = incomingP; renderProfiles(); setActiveUserUI(); }
+        }
+      }catch(e){}
+    }, 4000);
   }
 
   function seedPosts(){
@@ -479,19 +703,19 @@
       {
         id:"p1",
         author:"rozza69",
-        text:"just added a glitter background to my side of the page and I already feel 40% cooler",
+        text:"coolest person on this site lowkey",
         feeling:"unstoppable",
         emoji:"😎",
         ts: now - 1000*60*60*4,
         likes:["izzywizzyletsgetbusy"],
         comments:[
-          { author:"izzywizzyletsgetbusy", text:"top friend privileges revoked for that font choice", ts: now - 1000*60*50 }
+          { author:"izzywizzyletsgetbusy", text:"wow i just smell so bad and you're so cool", ts: now - 1000*60*50 }
         ]
       },
       {
         id:"p2",
         author:"izzywizzyletsgetbusy",
-        text:"new bulletin who dis. this is the whole network btw, it's just us, we are thriving",
+        text:"hi i'm izzy and i smell",
         feeling:"iconic",
         emoji:"🥳",
         ts: now - 1000*60*60*20,
@@ -501,17 +725,21 @@
     ];
   }
 
+  const SKINS = ['default','glitter','hearts','camo','static'];
+
   function renderProfiles(){
     const order = ["izzywizzyletsgetbusy","rozza69"];
     profilesEl.innerHTML = order.map(user => {
       const p = profiles[user] || { about:"", mood:"" };
       const other = order.find(u => u !== user);
+      const skin = p.theme || 'default';
+      const playing = !!nowPlayingActive[user];
       return `
-      <div class="profile-card chrome-panel">
+      <div class="profile-card chrome-panel skin-${skin}">
         <div class="profile-top">
-          ${pfpHTML(user, 'pfp', 52)}
+          ${profilePfpHTML(user)}
           <div>
-            <p class="pname">${user}</p>
+            <p class="pname">${user}<span class="online-dot" title="online"></span></p>
             <div class="mood-row">
               <input type="text" data-user="${user}" class="mood-input" value="${escapeHTML(p.mood || '')}" ${user===currentUser? '' : 'readonly'} placeholder="feeling: ...">
             </div>
@@ -520,6 +748,17 @@
         <div class="about-label">about me</div>
         <textarea class="about-box lcd" data-user="${user}" ${user===currentUser? '' : 'readonly'}>${escapeHTML(p.about || '')}</textarea>
         <span class="top-friend-tag">★ top friend: ${other}</span>
+        <div class="now-playing">
+          <button type="button" class="np-btn" data-user="${user}" title="toggle vibe">${playing ? '❚❚' : '▶'}</button>
+          <div class="np-eq ${playing ? 'playing' : ''}"><span></span><span></span><span></span><span></span></div>
+          <div class="np-track">
+            <div class="np-label">now playing</div>
+            <input type="text" class="np-input" data-user="${user}" value="${escapeHTML((p.nowPlaying && p.nowPlaying.track) || '')}" ${user===currentUser? '' : 'readonly'} placeholder="song - artist">
+          </div>
+        </div>
+        <div class="theme-row">
+          ${SKINS.map(s => `<div class="theme-swatch t-${s} ${skin===s?'active':''}" ${user===currentUser? `data-user="${user}" data-theme="${s}"` : ''} title="${s}"></div>`).join('')}
+        </div>
       </div>
       `;
     }).join('');
@@ -542,21 +781,78 @@
         await saveProfiles();
       });
     });
+    document.querySelectorAll('.np-input').forEach(inp => {
+      inp.addEventListener('change', async (e) => {
+        const user = e.target.dataset.user;
+        if(user !== currentUser) return;
+        profiles[user] = profiles[user] || {};
+        profiles[user].nowPlaying = { track: e.target.value };
+        await saveProfiles();
+      });
+    });
+    document.querySelectorAll('.np-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const user = e.currentTarget.dataset.user;
+        nowPlayingActive[user] = !nowPlayingActive[user];
+        renderProfiles();
+      });
+    });
+    document.querySelectorAll('.theme-swatch[data-user]').forEach(sw => {
+      sw.addEventListener('click', async (e) => {
+        const user = e.currentTarget.dataset.user;
+        if(user !== currentUser) return;
+        profiles[user] = profiles[user] || {};
+        profiles[user].theme = e.currentTarget.dataset.theme;
+        await saveProfiles();
+        renderProfiles();
+      });
+    });
+    document.querySelectorAll('.pfp-file-input').forEach(inp => {
+      inp.addEventListener('change', async (e) => {
+        const user = e.target.dataset.user;
+        const file = e.target.files[0];
+        if(user !== currentUser || !file) return;
+        try{
+          const dataUrl = await fileToResizedDataURL(file, 220);
+          profiles[user] = profiles[user] || {};
+          profiles[user].pic = dataUrl;
+          await saveProfiles();
+          renderProfiles();
+          render();
+          setActiveUserUI();
+        }catch(err){ console.error("couldn't process that image", err); }
+      });
+    });
+  }
+
+  function filterBannerHTML(){
+    return activeTagFilter
+      ? `<div class="tag-filter-banner">showing <strong>#${escapeHTML(activeTagFilter)}</strong> <button id="clearTagFilter" type="button">show all</button></div>`
+      : '';
   }
 
   function render(){
-    if(!posts.length){
-      feedEl.innerHTML = `<div class="empty"><span class="display">no posts yet</span>be the first to update the bulletin.</div>`;
+    const source = activeTagFilter ? posts.filter(p => (p.tags || []).includes(activeTagFilter)) : posts;
+
+    if(!source.length){
+      feedEl.innerHTML = filterBannerHTML() + `<div class="empty"><span class="display">no posts yet</span>${activeTagFilter ? 'nothing tagged #' + escapeHTML(activeTagFilter) + ' yet.' : 'be the first to update the bulletin.'}</div>`;
+      const clearBtn = document.getElementById('clearTagFilter');
+      if(clearBtn) clearBtn.addEventListener('click', () => { activeTagFilter = null; render(); });
       return;
     }
-    const sorted = [...posts].sort((a,b) => b.ts - a.ts);
+    const sorted = [...source].sort((a,b) => b.ts - a.ts);
     const newestId = sorted[0].id;
-    feedEl.innerHTML = sorted.map(p => {
+    feedEl.innerHTML = filterBannerHTML() + sorted.map(p => {
       const liked = p.likes.includes(currentUser);
       const canDelete = p.author === currentUser;
       const isNew = p.id === newestId && (Date.now() - p.ts) < 1000*60*60*12;
+      const reblogHead = p.reblogFrom ? `<div class="reblog-head">🔁 reblogged from <strong>${escapeHTML(p.reblogFrom)}</strong></div>` : '';
+      const photoHTML = p.photo ? `<div class="post-photo"><img src="${p.photo}" alt=""></div>` : '';
+      const tagsHTML = (p.tags && p.tags.length) ? `<div class="tag-pills">${p.tags.map(t => `<span class="tag-pill" data-tag="${escapeHTML(t)}">#${escapeHTML(t)}</span>`).join('')}</div>` : '';
+      const reblogBtn = p.author !== currentUser ? `<button class="action-btn reblog-btn" data-id="${p.id}">🔁 reblog</button>` : '';
       return `
       <div class="post chrome-panel" data-id="${p.id}">
+        ${reblogHead}
         <div class="post-head">
           ${pfpHTML(p.author, 'cpfp', 30)}
           <div>
@@ -564,13 +860,16 @@
             <div class="time">${timeAgo(p.ts)}</div>
           </div>
         </div>
+        ${photoHTML}
         <p class="post-text lcd">${escapeHTML(p.text)}</p>
+        ${tagsHTML}
         <div class="post-actions">
           <div class="clickwheel ${liked ? 'liked':''}" data-id="${p.id}" title="prop this">
             <div class="center-btn">${wheelSVG(liked)}</div>
           </div>
           <span class="prop-count">${p.likes.length ? p.likes.length + ' props' : 'props'}</span>
           <button class="action-btn comment-toggle" data-id="${p.id}">💬 ${p.comments.length ? p.comments.length + ' comment' + (p.comments.length>1?'s':'') : 'comment'}</button>
+          ${reblogBtn}
           ${canDelete ? `<button class="del-btn" data-id="${p.id}">delete</button>` : ''}
         </div>
         <div class="comments" id="comments-${p.id}" style="display:none;">
@@ -591,6 +890,12 @@
       `;
     }).join('');
 
+    const clearBtn = document.getElementById('clearTagFilter');
+    if(clearBtn) clearBtn.addEventListener('click', () => { activeTagFilter = null; render(); });
+    document.querySelectorAll('.tag-pill').forEach(el => el.addEventListener('click', (e) => {
+      activeTagFilter = e.currentTarget.dataset.tag;
+      render();
+    }));
     document.querySelectorAll('.clickwheel').forEach(b => b.addEventListener('click', onLike));
     document.querySelectorAll('.comment-toggle').forEach(b => b.addEventListener('click', onToggleComments));
     document.querySelectorAll('.comment-send').forEach(b => b.addEventListener('click', onSendComment));
@@ -598,6 +903,28 @@
       if(e.key === 'Enter') onSendComment({ currentTarget: { dataset: { id: inp.dataset.id } } });
     }));
     document.querySelectorAll('.del-btn').forEach(b => b.addEventListener('click', onDelete));
+    document.querySelectorAll('.reblog-btn').forEach(b => b.addEventListener('click', onReblog));
+  }
+
+  async function onReblog(e){
+    const id = e.currentTarget.dataset.id;
+    const original = posts.find(p => p.id === id);
+    if(!original) return;
+    posts.push({
+      id: 'p' + Date.now(),
+      author: currentUser,
+      text: original.text,
+      feeling: original.feeling,
+      emoji: original.emoji,
+      photo: original.photo || null,
+      tags: original.tags || [],
+      reblogFrom: original.reblogFrom || original.author,
+      ts: Date.now(),
+      likes: [],
+      comments: []
+    });
+    render();
+    await savePosts();
   }
 
   async function onLike(e){
@@ -646,9 +973,18 @@
     const text = postInput.value.trim();
     const feeling = feelingInput.value.trim();
     if(!text || !feeling || !selectedEmoji) return;
-    posts.push({ id:'p'+Date.now(), author: currentUser, text, feeling, emoji: selectedEmoji, ts: Date.now(), likes: [], comments: [] });
+    const tags = tagsInput.value.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(Boolean);
+    posts.push({
+      id:'p'+Date.now(), author: currentUser, text, feeling, emoji: selectedEmoji,
+      photo: composerPhoto || null, tags, reblogFrom: null,
+      ts: Date.now(), likes: [], comments: []
+    });
     postInput.value = '';
     feelingInput.value = '';
+    tagsInput.value = '';
+    composerPhoto = null;
+    photoFileInput.value = '';
+    renderPhotoPreview();
     selectedEmoji = null;
     renderEmojiPicker();
     updatePostBtnState();
@@ -666,19 +1002,21 @@
     setActiveUserUI();
     renderProfiles();
     render();
-    try{ window.storage.set('pad-current-user', currentUser, false); }catch(e){}
+    try{ DB.set('pad-current-user', currentUser, false); }catch(e){}
   });
 
   (async function init(){
     try{
-      const saved = await window.storage.get('pad-current-user', false);
+      const saved = await DB.get('pad-current-user', false);
       if(saved && saved.value && USERS[saved.value]) currentUser = saved.value;
     }catch(e){}
     setActiveUserUI();
     renderEmojiPicker();
     updatePostBtnState();
+    renderPhotoPreview();
     await bumpVisitorCount();
     await loadAll();
+    startPolling();
   })();
 
 })();
