@@ -458,12 +458,6 @@
   let activeTagFilter = null;
   const nowPlayingActive = {};
 
-  // ============ STORAGE ADAPTER ============
-  // Inside a Claude.ai artifact, window.storage exists and syncs both of you already.
-  // Once this file is hosted standalone (e.g. from your Mac), window.storage does NOT
-  // exist, so this falls back to localStorage — that works, but it's local to each of
-  // your own browsers until Supabase is wired in (no cross-device sync).
-  //
   // TO HOOK UP SUPABASE LATER:
   //   1. Add <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script> to <head>
   //   2. const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
