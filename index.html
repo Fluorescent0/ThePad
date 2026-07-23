@@ -344,9 +344,34 @@
   .badge.blinkie{ animation: blinkFlash 1.1s steps(2) infinite; }
   @keyframes blinkFlash{ 50%{ opacity:0.3; } }
 
+  .login-screen{ position:fixed; inset:0; z-index:999; display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(ellipse at 50% 0%, #EEF2F5 0%, #C9D2D8 55%, #AAB4BC 100%); padding:20px; }
+  .login-card{ width:100%; max-width:320px; padding:28px 24px; text-align:center; }
+  .login-logo{ font-size:30px; margin-bottom:6px; }
+  .login-sub{ font-size:11px; color:var(--steel); margin:0 0 18px; }
+  .login-input{ width:100%; margin-bottom:10px; padding:9px 12px; border:1px solid #C3CAD0; border-radius:8px;
+    font-family:'JetBrains Mono',monospace; font-size:13px; outline:none; }
+  .login-btn{ width:100%; margin-top:4px; }
+  .login-error{ color:var(--pink); font-size:11px; margin:12px 0 0; min-height:14px; font-family:'JetBrains Mono',monospace; }
+  #sessionBar{ align-items:center; }
+  #sessionUser{ padding:0 8px; font-weight:700; color:var(--glass-blue-dark); display:flex; align-items:center; font-size:11px; }
+
 </style>
 </head>
 <body>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-card chrome-panel">
+    <div class="login-logo display rainbow-text">ThePad</div>
+    <p class="login-sub mono">members only. log in to see what's new.</p>
+    <input type="email" id="loginEmail" class="login-input" placeholder="email" autocomplete="username">
+    <input type="password" id="loginPassword" class="login-input" placeholder="password" autocomplete="current-password">
+    <button type="button" id="loginBtn" class="glossy-btn login-btn">log in</button>
+    <p id="loginError" class="login-error mono"></p>
+  </div>
+</div>
+
+<div id="appRoot" style="display:none;">
 
 <header class="brushed">
   <div class="header-inner">
@@ -376,9 +401,9 @@
         <div class="site-tag">est. today · 2 members online</div>
       </div>
     </div>
-    <div class="user-switch chrome-panel" id="userSwitch">
-      <button data-user="izzywizzyletsgetbusy" id="btn-izzy">izzywizzyletsgetbusy</button>
-      <button data-user="rozza69" id="btn-rozza">rozza69</button>
+    <div class="user-switch chrome-panel" id="sessionBar">
+      <span class="mono" id="sessionUser"></span>
+      <button type="button" id="logoutBtn">log out</button>
     </div>
   </div>
 </header>
@@ -429,103 +454,44 @@
 
 <footer>
   <div class="badge-strip">
-    <span class="badge b2 blinkie">COOL SHIT</span>
+    <span class="badge">THE</span>
+    <span class="badge b2">PAD</span>
+    <span class="badge b3">.COM</span>
+    <span class="badge b2 blinkie">★ TOP FRIENDS ★</span>
     <span class="badge blinkie">UNDER CONSTRUCTION</span>
-    <span class="badge b3">100% AWESOME</span>
+    <span class="badge b3">100% ORGANIC HTML</span>
   </div>
   <div class="foot-note">ThePad.com</div>
 </footer>
 
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
+  const SUPABASE_URL = "https://uotnojghanuxduuwhvxh.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_c74kfqSZeukbaRJidg3PfQ_E2GNoa1p";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   const USERS = {
     "izzywizzyletsgetbusy": { color:"#FF3E96", initial:"I" },
     "rozza69": { color:"#29D6FF", initial:"R" }
   };
-  const POSTS_KEY = "pad-posts";
-  const PROFILES_KEY = "pad-profiles";
-  const VISITOR_KEY = "pad-visitor-count";
-  let posts = [];
-  let profiles = {
-    "izzywizzyletsgetbusy": { about: "click to edit your about me!!", mood: "feeling: iconic" },
-    "rozza69": { about: "click to edit your about me!!", mood: "feeling: iconic" }
-  };
-  let currentUser = "izzywizzyletsgetbusy";
-
+  const USER_ORDER = ["izzywizzyletsgetbusy", "rozza69"];
+  const SKINS = ['default','glitter','hearts','camo','static'];
   const EMOJI_OPTIONS = ['😊','😂','😍','😭','😤','😴','🥳','😬','🙄','💀','😎','🥺'];
+
+  let posts = [];
+  let commentsByPost = {};
+  let profiles = {};
+  let currentUser = null;
+  let currentUserId = null;
   let selectedEmoji = null;
   let composerPhoto = null;
   let activeTagFilter = null;
+  let realtimeChannel = null;
   const nowPlayingActive = {};
-
-  // TO HOOK UP SUPABASE LATER:
-  //   1. Add <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script> to <head>
-  //   2. const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  //   3. Create a simple key/value table, e.g.:
-  //        create table pad_kv (key text primary key, value text, updated_at timestamptz default now());
-  //   4. Replace the two method bodies below with:
-  //        async get(key){ const {data} = await supabase.from('pad_kv').select('value').eq('key', key).maybeSingle(); return data ? {value: data.value} : null; }
-  //        async set(key, value){ await supabase.from('pad_kv').upsert({key, value, updated_at: new Date()}); return {value}; }
-  //   5. For real-time sync (no polling needed), add a supabase.channel('pad').on('postgres_changes', {event:'*', schema:'public', table:'pad_kv'}, () => loadAll()).subscribe()
-  //   6. The `shared` param can just be ignored/dropped once every key lives in your own database.
-  const DB = (function(){
-    const hasArtifactStorage = typeof window.storage !== 'undefined';
-    return {
-      backend: hasArtifactStorage ? 'artifact' : 'local',
-      async get(key, shared){
-        if(hasArtifactStorage){
-          try{ return await window.storage.get(key, shared); }catch(e){ return null; }
-        }
-        const raw = localStorage.getItem('thepad:' + key);
-        return raw ? { value: raw } : null;
-      },
-      async set(key, value, shared){
-        if(hasArtifactStorage){
-          try{ return await window.storage.set(key, value, shared); }catch(e){ return null; }
-        }
-        try{ localStorage.setItem('thepad:' + key, value); }catch(e){ console.error('local storage full?', e); }
-        return { value };
-      }
-    };
-  })();
-
-  const feedEl = document.getElementById('feed');
-  const postInput = document.getElementById('postInput');
-  const feelingInput = document.getElementById('feelingInput');
-  const emojiRowEl = document.getElementById('emojiRow');
-  const postBtn = document.getElementById('postBtn');
-  const composerPfp = document.getElementById('composerPfp');
-  const profilesEl = document.getElementById('profiles');
-  const odometerEl = document.getElementById('odometer');
-  const visitorRankEl = document.getElementById('visitorRank');
-  const photoAttachBtn = document.getElementById('photoAttachBtn');
-  const photoFileInput = document.getElementById('photoFileInput');
-  const photoPreviewWrap = document.getElementById('photoPreviewWrap');
-  const tagsInput = document.getElementById('tagsInput');
-
-  function renderPhotoPreview(){
-    photoPreviewWrap.innerHTML = composerPhoto ? `
-      <div class="photo-preview-wrap">
-        <img src="${composerPhoto}" alt="">
-        <button type="button" class="photo-remove" id="photoRemoveBtn">✕</button>
-      </div>` : '';
-    const rm = document.getElementById('photoRemoveBtn');
-    if(rm) rm.addEventListener('click', () => {
-      composerPhoto = null;
-      photoFileInput.value = '';
-      renderPhotoPreview();
-    });
-  }
-
-  photoAttachBtn.addEventListener('click', () => photoFileInput.click());
-  photoFileInput.addEventListener('change', async () => {
-    const file = photoFileInput.files[0];
-    if(!file) return;
-    try{
-      composerPhoto = await fileToResizedDataURL(file, 720);
-      renderPhotoPreview();
-    }catch(e){ console.error("couldn't process that image", e); }
-  });
+  const openComments = new Set();
 
   function fileToResizedDataURL(file, maxDim){
     return new Promise((resolve, reject) => {
@@ -568,7 +534,7 @@
 
   function escapeHTML(str){
     const div = document.createElement('div');
-    div.textContent = str;
+    div.textContent = str == null ? '' : str;
     return div.innerHTML;
   }
 
@@ -580,7 +546,6 @@
 
   function pfpHTML(user, cls, size){
     const u = USERS[user] || { color:"#999", initial:"?" };
-    const pic = profiles[user] && profiles[user].pic;
     const style = size ? `style="width:${size}px;height:${size}px;font-size:${Math.floor(size*0.42)}px;background:${u.color}"` : `style="background:${u.color}"`;
     return `<div class="${cls}" ${style}>${avatarInner(user)}</div>`;
   }
@@ -597,6 +562,52 @@
       <input type="file" accept="image/*" class="pfp-file-input" data-user="${user}">
     </label>`;
   }
+
+  const feedEl = document.getElementById('feed');
+  const postInput = document.getElementById('postInput');
+  const feelingInput = document.getElementById('feelingInput');
+  const emojiRowEl = document.getElementById('emojiRow');
+  const postBtn = document.getElementById('postBtn');
+  const composerPfp = document.getElementById('composerPfp');
+  const profilesEl = document.getElementById('profiles');
+  const odometerEl = document.getElementById('odometer');
+  const visitorRankEl = document.getElementById('visitorRank');
+  const photoAttachBtn = document.getElementById('photoAttachBtn');
+  const photoFileInput = document.getElementById('photoFileInput');
+  const photoPreviewWrap = document.getElementById('photoPreviewWrap');
+  const tagsInput = document.getElementById('tagsInput');
+  const loginScreen = document.getElementById('loginScreen');
+  const appRoot = document.getElementById('appRoot');
+  const loginEmail = document.getElementById('loginEmail');
+  const loginPassword = document.getElementById('loginPassword');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginError = document.getElementById('loginError');
+  const sessionUser = document.getElementById('sessionUser');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  function renderPhotoPreview(){
+    photoPreviewWrap.innerHTML = composerPhoto ? `
+      <div class="photo-preview-wrap">
+        <img src="${composerPhoto}" alt="">
+        <button type="button" class="photo-remove" id="photoRemoveBtn">✕</button>
+      </div>` : '';
+    const rm = document.getElementById('photoRemoveBtn');
+    if(rm) rm.addEventListener('click', () => {
+      composerPhoto = null;
+      photoFileInput.value = '';
+      renderPhotoPreview();
+    });
+  }
+
+  photoAttachBtn.addEventListener('click', () => photoFileInput.click());
+  photoFileInput.addEventListener('change', async () => {
+    const file = photoFileInput.files[0];
+    if(!file) return;
+    try{
+      composerPhoto = await fileToResizedDataURL(file, 720);
+      renderPhotoPreview();
+    }catch(e){ console.error("couldn't process that image", e); }
+  });
 
   function renderEmojiPicker(){
     emojiRowEl.innerHTML = EMOJI_OPTIONS.map(em =>
@@ -617,11 +628,11 @@
   }
 
   function setActiveUserUI(){
-    document.getElementById('btn-izzy').classList.toggle('active', currentUser === 'izzywizzyletsgetbusy');
-    document.getElementById('btn-rozza').classList.toggle('active', currentUser === 'rozza69');
+    if(!currentUser) return;
+    sessionUser.textContent = currentUser;
     const pic = profiles[currentUser] && profiles[currentUser].pic;
-    composerPfp.style.background = pic ? 'transparent' : USERS[currentUser].color;
-    composerPfp.innerHTML = pic ? `<img class="pfp-photo" src="${pic}" alt="">` : USERS[currentUser].initial;
+    composerPfp.style.background = pic ? 'transparent' : (USERS[currentUser] ? USERS[currentUser].color : '#999');
+    composerPfp.innerHTML = pic ? `<img class="pfp-photo" src="${pic}" alt="">` : (USERS[currentUser] ? USERS[currentUser].initial : '?');
   }
 
   function renderOdometer(n){
@@ -632,97 +643,68 @@
   async function bumpVisitorCount(){
     let count = 1;
     try{
-      const res = await DB.get(VISITOR_KEY, true);
-      count = (res && res.value) ? parseInt(res.value, 10) + 1 : 1;
-      await DB.set(VISITOR_KEY, String(count), true);
-    }catch(e){
-      count = Math.floor(Math.random()*500)+1;
-    }
+      const { data, error } = await sb.rpc('increment_visitor_count');
+      if(!error && typeof data === 'number') count = data;
+    }catch(e){}
     renderOdometer(count);
     visitorRankEl.textContent = count;
   }
 
   async function loadAll(){
     try{
-      const res = await DB.get(POSTS_KEY, true);
-      posts = res && res.value ? JSON.parse(res.value) : seedPosts();
+      const [postsRes, commentsRes, profilesRes] = await Promise.all([
+        sb.from('posts').select('*').order('created_at', { ascending:false }),
+        sb.from('comments').select('*').order('created_at', { ascending:true }),
+        sb.from('profiles').select('*')
+      ]);
+      posts = (postsRes.data || []).map(p => ({
+        id: p.id, author: p.author, text: p.body, feeling: p.feeling, emoji: p.emoji,
+        photo: p.photo, tags: p.tags || [], reblogFrom: p.reblog_from,
+        likes: p.likes || [], ts: new Date(p.created_at).getTime()
+      }));
+      commentsByPost = {};
+      (commentsRes.data || []).forEach(c => {
+        (commentsByPost[c.post_id] = commentsByPost[c.post_id] || []).push({
+          author: c.author, text: c.body, ts: new Date(c.created_at).getTime()
+        });
+      });
+      profiles = {};
+      (profilesRes.data || []).forEach(p => {
+        profiles[p.username] = {
+          about: p.about, mood: p.mood, theme: p.theme,
+          nowPlayingTrack: p.now_playing, pic: p.pic
+        };
+      });
     }catch(e){
-      posts = seedPosts();
-      try{ await DB.set(POSTS_KEY, JSON.stringify(posts), true); }catch(e2){}
+      console.error("couldn't load ThePad's data", e);
     }
-    try{
-      const res2 = await DB.get(PROFILES_KEY, true);
-      if(res2 && res2.value) profiles = JSON.parse(res2.value);
-      else await DB.set(PROFILES_KEY, JSON.stringify(profiles), true);
-    }catch(e){}
     renderProfiles();
     render();
     setActiveUserUI();
   }
 
-  async function savePosts(){
-    try{ await DB.set(POSTS_KEY, JSON.stringify(posts), true); }
-    catch(e){ console.error("couldn't save the bulletin", e); }
-  }
-  async function saveProfiles(){
-    try{ await DB.set(PROFILES_KEY, JSON.stringify(profiles), true); }
-    catch(e){ console.error("couldn't save profile", e); }
-  }
-
-  function startPolling(){
-    // Lightweight "good enough" live sync for the shared KV backend. If you move to
-    // Supabase, swap this for a realtime channel subscription instead (see notes above).
-    setInterval(async () => {
-      try{
-        const res = await DB.get(POSTS_KEY, true);
-        if(res && res.value){
-          const incoming = JSON.parse(res.value);
-          if(JSON.stringify(incoming) !== JSON.stringify(posts)){ posts = incoming; render(); }
-        }
-        const res2 = await DB.get(PROFILES_KEY, true);
-        if(res2 && res2.value){
-          const incomingP = JSON.parse(res2.value);
-          if(JSON.stringify(incomingP) !== JSON.stringify(profiles)){ profiles = incomingP; renderProfiles(); setActiveUserUI(); }
-        }
-      }catch(e){}
-    }, 4000);
+  function subscribeRealtime(){
+    if(realtimeChannel) return;
+    realtimeChannel = sb.channel('pad-realtime')
+      .on('postgres_changes', { event:'*', schema:'public', table:'posts' }, () => loadAll())
+      .on('postgres_changes', { event:'*', schema:'public', table:'comments' }, () => loadAll())
+      .on('postgres_changes', { event:'*', schema:'public', table:'profiles' }, () => loadAll())
+      .subscribe();
   }
 
-  function seedPosts(){
-    const now = Date.now();
-    return [
-      {
-        id:"p1",
-        author:"rozza69",
-        text:"coolest person on this site lowkey",
-        feeling:"unstoppable",
-        emoji:"😎",
-        ts: now - 1000*60*60*4,
-        likes:["izzywizzyletsgetbusy"],
-        comments:[
-          { author:"izzywizzyletsgetbusy", text:"wow i just smell so bad and you're so cool", ts: now - 1000*60*50 }
-        ]
-      },
-      {
-        id:"p2",
-        author:"izzywizzyletsgetbusy",
-        text:"hi i'm izzy and i smell",
-        feeling:"iconic",
-        emoji:"🥳",
-        ts: now - 1000*60*60*20,
-        likes:[],
-        comments:[]
-      }
-    ];
+  async function updateProfileField(field, value){
+    profiles[currentUser] = profiles[currentUser] || {};
+    profiles[currentUser][field === 'now_playing' ? 'nowPlayingTrack' : field] = value;
+    renderProfiles();
+    const { error } = await sb.from('profiles').update({ [field]: value }).eq('user_id', currentUserId);
+    if(error) console.error("couldn't save profile", error);
+    await loadAll();
   }
-
-  const SKINS = ['default','glitter','hearts','camo','static'];
 
   function renderProfiles(){
-    const order = ["izzywizzyletsgetbusy","rozza69"];
-    profilesEl.innerHTML = order.map(user => {
+    profilesEl.innerHTML = USER_ORDER.map(user => {
       const p = profiles[user] || { about:"", mood:"" };
-      const other = order.find(u => u !== user);
+      const other = USER_ORDER.find(u => u !== user);
       const skin = p.theme || 'default';
       const playing = !!nowPlayingActive[user];
       return `
@@ -744,7 +726,7 @@
           <div class="np-eq ${playing ? 'playing' : ''}"><span></span><span></span><span></span><span></span></div>
           <div class="np-track">
             <div class="np-label">now playing</div>
-            <input type="text" class="np-input" data-user="${user}" value="${escapeHTML((p.nowPlaying && p.nowPlaying.track) || '')}" ${user===currentUser? '' : 'readonly'} placeholder="song - artist">
+            <input type="text" class="np-input" data-user="${user}" value="${escapeHTML(p.nowPlayingTrack || '')}" ${user===currentUser? '' : 'readonly'} placeholder="song - artist">
           </div>
         </div>
         <div class="theme-row">
@@ -758,27 +740,21 @@
       box.addEventListener('change', async (e) => {
         const user = e.target.dataset.user;
         if(user !== currentUser) return;
-        profiles[user] = profiles[user] || {};
-        profiles[user].about = e.target.value;
-        await saveProfiles();
+        await updateProfileField('about', e.target.value);
       });
     });
     document.querySelectorAll('.mood-input').forEach(inp => {
       inp.addEventListener('change', async (e) => {
         const user = e.target.dataset.user;
         if(user !== currentUser) return;
-        profiles[user] = profiles[user] || {};
-        profiles[user].mood = e.target.value;
-        await saveProfiles();
+        await updateProfileField('mood', e.target.value);
       });
     });
     document.querySelectorAll('.np-input').forEach(inp => {
       inp.addEventListener('change', async (e) => {
         const user = e.target.dataset.user;
         if(user !== currentUser) return;
-        profiles[user] = profiles[user] || {};
-        profiles[user].nowPlaying = { track: e.target.value };
-        await saveProfiles();
+        await updateProfileField('now_playing', e.target.value);
       });
     });
     document.querySelectorAll('.np-btn').forEach(btn => {
@@ -792,10 +768,7 @@
       sw.addEventListener('click', async (e) => {
         const user = e.currentTarget.dataset.user;
         if(user !== currentUser) return;
-        profiles[user] = profiles[user] || {};
-        profiles[user].theme = e.currentTarget.dataset.theme;
-        await saveProfiles();
-        renderProfiles();
+        await updateProfileField('theme', e.currentTarget.dataset.theme);
       });
     });
     document.querySelectorAll('.pfp-file-input').forEach(inp => {
@@ -805,12 +778,7 @@
         if(user !== currentUser || !file) return;
         try{
           const dataUrl = await fileToResizedDataURL(file, 220);
-          profiles[user] = profiles[user] || {};
-          profiles[user].pic = dataUrl;
-          await saveProfiles();
-          renderProfiles();
-          render();
-          setActiveUserUI();
+          await updateProfileField('pic', dataUrl);
         }catch(err){ console.error("couldn't process that image", err); }
       });
     });
@@ -841,6 +809,8 @@
       const photoHTML = p.photo ? `<div class="post-photo"><img src="${p.photo}" alt=""></div>` : '';
       const tagsHTML = (p.tags && p.tags.length) ? `<div class="tag-pills">${p.tags.map(t => `<span class="tag-pill" data-tag="${escapeHTML(t)}">#${escapeHTML(t)}</span>`).join('')}</div>` : '';
       const reblogBtn = p.author !== currentUser ? `<button class="action-btn reblog-btn" data-id="${p.id}">🔁 reblog</button>` : '';
+      const comments = commentsByPost[p.id] || [];
+      const isOpen = openComments.has(p.id);
       return `
       <div class="post chrome-panel" data-id="${p.id}">
         ${reblogHead}
@@ -859,12 +829,12 @@
             <div class="center-btn">${wheelSVG(liked)}</div>
           </div>
           <span class="prop-count">${p.likes.length ? p.likes.length + ' props' : 'props'}</span>
-          <button class="action-btn comment-toggle" data-id="${p.id}">💬 ${p.comments.length ? p.comments.length + ' comment' + (p.comments.length>1?'s':'') : 'comment'}</button>
+          <button class="action-btn comment-toggle" data-id="${p.id}">💬 ${comments.length ? comments.length + ' comment' + (comments.length>1?'s':'') : 'comment'}</button>
           ${reblogBtn}
           ${canDelete ? `<button class="del-btn" data-id="${p.id}">delete</button>` : ''}
         </div>
-        <div class="comments" id="comments-${p.id}" style="display:none;">
-          ${p.comments.map(c => `
+        <div class="comments" id="comments-${p.id}" style="display:${isOpen ? 'block' : 'none'};">
+          ${comments.map(c => `
             <div class="comment">
               ${pfpHTML(c.author, 'cpfp', 22)}
               <div class="comment-bubble">
@@ -901,42 +871,35 @@
     const id = e.currentTarget.dataset.id;
     const original = posts.find(p => p.id === id);
     if(!original) return;
-    posts.push({
-      id: 'p' + Date.now(),
-      author: currentUser,
-      text: original.text,
-      feeling: original.feeling,
-      emoji: original.emoji,
-      photo: original.photo || null,
-      tags: original.tags || [],
-      reblogFrom: original.reblogFrom || original.author,
-      ts: Date.now(),
-      likes: [],
-      comments: []
+    const { error } = await sb.from('posts').insert({
+      author: currentUser, body: original.text, feeling: original.feeling, emoji: original.emoji,
+      photo: original.photo || null, tags: original.tags || [],
+      reblog_from: original.reblogFrom || original.author, likes: []
     });
-    render();
-    await savePosts();
+    if(error) console.error("couldn't reblog", error);
+    await loadAll();
   }
 
   async function onLike(e){
     const id = e.currentTarget.dataset.id;
     const post = posts.find(p => p.id === id);
     if(!post) return;
-    const idx = post.likes.indexOf(currentUser);
-    if(idx >= 0) post.likes.splice(idx,1);
-    else post.likes.push(currentUser);
-    render();
-    if(idx < 0){
+    const has = post.likes.includes(currentUser);
+    const newLikes = has ? post.likes.filter(u => u !== currentUser) : [...post.likes, currentUser];
+    if(!has){
       const wheel = document.querySelector(`.clickwheel[data-id="${id}"]`);
       if(wheel) wheel.classList.add('wheel-pop');
     }
-    await savePosts();
+    const { error } = await sb.from('posts').update({ likes: newLikes }).eq('id', id);
+    if(error) console.error("couldn't save that prop", error);
+    await loadAll();
   }
 
   function onToggleComments(e){
     const id = e.currentTarget.dataset.id;
+    if(openComments.has(id)) openComments.delete(id); else openComments.add(id);
     const box = document.getElementById('comments-' + id);
-    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    if(box) box.style.display = openComments.has(id) ? 'block' : 'none';
   }
 
   async function onSendComment(e){
@@ -944,73 +907,94 @@
     const input = document.querySelector(`.comment-input[data-id="${id}"]`);
     const text = input.value.trim();
     if(!text) return;
-    const post = posts.find(p => p.id === id);
-    post.comments.push({ author: currentUser, text, ts: Date.now() });
     input.value = '';
-    render();
-    const box = document.getElementById('comments-' + id);
-    if(box) box.style.display = 'block';
-    await savePosts();
+    openComments.add(id);
+    const { error } = await sb.from('comments').insert({ post_id: id, author: currentUser, body: text });
+    if(error) console.error("couldn't post that comment", error);
+    await loadAll();
   }
 
   async function onDelete(e){
     const id = e.currentTarget.dataset.id;
-    posts = posts.filter(p => p.id !== id);
-    render();
-    await savePosts();
+    const { error } = await sb.from('posts').delete().eq('id', id);
+    if(error) console.error("couldn't delete that post", error);
+    await loadAll();
   }
 
   postBtn.addEventListener('click', async () => {
     const text = postInput.value.trim();
     const feeling = feelingInput.value.trim();
     if(!text || !feeling || !selectedEmoji) return;
+    const emoji = selectedEmoji;
     const tags = tagsInput.value.split(',').map(t => t.trim().toLowerCase().replace(/^#/, '')).filter(Boolean);
-    posts.push({
-      id:'p'+Date.now(), author: currentUser, text, feeling, emoji: selectedEmoji,
-      photo: composerPhoto || null, tags, reblogFrom: null,
-      ts: Date.now(), likes: [], comments: []
+    const photo = composerPhoto;
+    postInput.value = ''; feelingInput.value = ''; tagsInput.value = '';
+    composerPhoto = null; photoFileInput.value = ''; renderPhotoPreview();
+    selectedEmoji = null; renderEmojiPicker(); updatePostBtnState();
+    const { error } = await sb.from('posts').insert({
+      author: currentUser, body: text, feeling, emoji, photo, tags, reblog_from: null, likes: []
     });
-    postInput.value = '';
-    feelingInput.value = '';
-    tagsInput.value = '';
-    composerPhoto = null;
-    photoFileInput.value = '';
-    renderPhotoPreview();
-    selectedEmoji = null;
-    renderEmojiPicker();
-    updatePostBtnState();
-    render();
-    await savePosts();
+    if(error) console.error("couldn't post that update", error);
+    await loadAll();
   });
 
   postInput.addEventListener('input', updatePostBtnState);
   feelingInput.addEventListener('input', updatePostBtnState);
 
-  document.getElementById('userSwitch').addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if(!btn) return;
-    currentUser = btn.dataset.user;
+  // ============ AUTH ============
+
+  async function afterLogin(){
+    const { data: { user } } = await sb.auth.getUser();
+    if(!user) return;
+    currentUserId = user.id;
+    const { data: profileRow, error } = await sb.from('profiles').select('username').eq('user_id', user.id).maybeSingle();
+    if(error || !profileRow){
+      loginError.textContent = "logged in, but no profile is linked to this account yet";
+      await sb.auth.signOut();
+      return;
+    }
+    currentUser = profileRow.username;
+    loginScreen.style.display = 'none';
+    appRoot.style.display = '';
     setActiveUserUI();
-    renderProfiles();
-    render();
-    try{ DB.set('pad-current-user', currentUser, false); }catch(e){}
+    await bumpVisitorCount();
+    await loadAll();
+    subscribeRealtime();
+  }
+
+  async function doLogin(){
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value;
+    loginError.textContent = '';
+    if(!email || !password){ loginError.textContent = 'enter both fields'; return; }
+    loginBtn.disabled = true; loginBtn.textContent = 'logging in…';
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    loginBtn.disabled = false; loginBtn.textContent = 'log in';
+    if(error){ loginError.textContent = "couldn't log in - check your email and password"; return; }
+    await afterLogin();
+  }
+
+  loginBtn.addEventListener('click', doLogin);
+  loginPassword.addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+  loginEmail.addEventListener('keydown', e => { if(e.key === 'Enter') loginPassword.focus(); });
+
+  logoutBtn.addEventListener('click', async () => {
+    await sb.auth.signOut();
+    location.reload();
   });
 
   (async function init(){
-    try{
-      const saved = await DB.get('pad-current-user', false);
-      if(saved && saved.value && USERS[saved.value]) currentUser = saved.value;
-    }catch(e){}
-    setActiveUserUI();
     renderEmojiPicker();
     updatePostBtnState();
     renderPhotoPreview();
-    await bumpVisitorCount();
-    await loadAll();
-    startPolling();
+    try{
+      const { data: { session } } = await sb.auth.getSession();
+      if(session) await afterLogin();
+    }catch(e){ console.error(e); }
   })();
 
 })();
+
 </script>
 </body>
 </html>
