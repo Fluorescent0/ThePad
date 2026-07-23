@@ -131,7 +131,7 @@
     padding:2px 0;
   }
 
-  .profiles{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:22px; }
+  .profiles{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; margin-bottom:22px; }
   @media (max-width:560px){ .profiles{grid-template-columns:1fr;} }
   .profile-card{ padding:16px; }
   .profile-top{ display:flex; gap:12px; align-items:center; margin-bottom:10px; }
@@ -147,12 +147,6 @@
   .mood-row input{ font-family:'JetBrains Mono',monospace; font-size:10.5px; border:none; background:transparent; outline:none; width:100%; color:var(--steel); padding:1px 0; }
   .about-label{ font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--glass-blue-dark); margin:10px 0 4px; font-weight:700; }
   .about-box{ width:100%; padding:8px 10px; font-family:'JetBrains Mono',cursive; font-size:12.5px; font-weight:600; resize:none; outline:none; min-height:50px; }
-  .top-friend-tag{
-    display:inline-flex; align-items:center; gap:4px; margin-top:10px;
-    background:linear-gradient(180deg,#FFD86B,#E8A93B); border:1px solid #B8801F; border-radius:999px;
-    padding:3px 10px; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; color:#4A2E00;
-    box-shadow:0 1px 0 rgba(255,255,255,0.5) inset;
-  }
 
   .bulletin-head{ display:flex; align-items:center; gap:8px; margin:28px 0 12px; }
   .bulletin-head .display{ font-size:19px; color:var(--steel); text-shadow:0 1px 0 rgba(255,255,255,0.6); }
@@ -374,6 +368,11 @@
   .toast{ background:#fff; border:1px solid #C3CAD0; border-radius:10px; padding:10px 12px; box-shadow:0 4px 14px rgba(0,0,0,0.2); font-family:'JetBrains Mono',monospace; font-size:11.5px; display:flex; gap:8px; align-items:flex-start; animation: toastIn .25s ease; }
   @keyframes toastIn{ from{ opacity:0; transform:translateY(-8px);} to{opacity:1; transform:translateY(0);} }
 
+  .nav-tabs{ display:flex; gap:8px; justify-content:center; margin-bottom:22px; }
+  .nav-tab{ font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; background:#fff; border:1px solid #C3CAD0; border-radius:999px; padding:7px 18px; cursor:pointer; color:var(--steel); }
+  .nav-tab.active{ background:linear-gradient(180deg,#6FC1FF,#3E8EDE); color:#fff; border-color:#1F5FA8; box-shadow:0 2px 4px rgba(0,0,0,.2); }
+  .member-since-tag{ display:block; margin-top:10px; font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--steel); letter-spacing:0.4px; }
+
 </style>
 </head>
 <body>
@@ -418,7 +417,7 @@
         </g>
       </svg>
       <div>
-        <div class="site-tag">est. today · 2 members online</div>
+        <div class="site-tag" id="siteTag">est. today · loading members…</div>
       </div>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
@@ -445,47 +444,57 @@
     </div>
   </div>
 
-  <div class="profiles" id="profiles"></div>
-
-  <div class="bulletin-head">
-    <span class="display rainbow-text">the bulletin</span>
-    <div class="rule"></div>
+  <div class="nav-tabs" id="navTabs">
+    <button type="button" class="nav-tab active" data-view="feed">📰 the feed</button>
+    <button type="button" class="nav-tab" data-view="profiles">👥 profiles</button>
   </div>
 
-  <div class="chrome-panel device composer">
-    <div class="row">
-      <div class="device-pfp" id="composerPfp"></div>
-      <div class="lcd" style="flex:1; display:flex;">
-        <textarea id="postInput" placeholder="what's the update??"></textarea>
+  <div id="feedView">
+    <div class="bulletin-head">
+      <span class="display rainbow-text">the bulletin</span>
+      <div class="rule"></div>
+    </div>
+
+    <div class="chrome-panel device composer">
+      <div class="row">
+        <div class="device-pfp" id="composerPfp"></div>
+        <div class="lcd" style="flex:1; display:flex;">
+          <textarea id="postInput" placeholder="what's the update??"></textarea>
+        </div>
+      </div>
+      <div class="feeling-row">
+        <span class="feeling-label mono">feeling:</span>
+        <input type="text" id="feelingInput" class="feeling-input mono" placeholder="required...">
+      </div>
+      <div class="emoji-row" id="emojiRow"></div>
+      <div class="composer-photo-row">
+        <button type="button" class="photo-attach-btn" id="photoAttachBtn">📷 add photo</button>
+        <input type="file" accept="image/*" id="photoFileInput" style="display:none;">
+        <div id="photoPreviewWrap"></div>
+      </div>
+      <input type="text" id="tagsInput" class="tags-input" placeholder="tags (comma separated, optional)">
+      <div class="composer-foot">
+        <button class="glossy-btn" id="postBtn" disabled>post it!</button>
       </div>
     </div>
-    <div class="feeling-row">
-      <span class="feeling-label mono">feeling:</span>
-      <input type="text" id="feelingInput" class="feeling-input mono" placeholder="required...">
-    </div>
-    <div class="emoji-row" id="emojiRow"></div>
-    <div class="composer-photo-row">
-      <button type="button" class="photo-attach-btn" id="photoAttachBtn">📷 add photo</button>
-      <input type="file" accept="image/*" id="photoFileInput" style="display:none;">
-      <div id="photoPreviewWrap"></div>
-    </div>
-    <input type="text" id="tagsInput" class="tags-input" placeholder="tags (comma separated, optional)">
-    <div class="composer-foot">
-      <button class="glossy-btn" id="postBtn" disabled>post it!</button>
+
+    <div id="feed">
+      <div class="loading">loading the bulletin…</div>
     </div>
   </div>
 
-  <div id="feed">
-    <div class="loading">loading the bulletin…</div>
+  <div id="profilesView" style="display:none;">
+    <div class="bulletin-head">
+      <span class="display rainbow-text">profiles</span>
+      <div class="rule"></div>
+    </div>
+    <div class="profiles" id="profiles"></div>
   </div>
 </main>
 
 <footer>
   <div class="badge-strip">
-    <span class="badge">THE</span>
-    <span class="badge b2">PAD</span>
-    <span class="badge b3">.COM</span>
-    <span class="badge b2 blinkie">HOT SHIT</span>
+    <span class="badge b2 blinkie">COOL SHIT</span>
     <span class="badge blinkie">UNDER CONSTRUCTION</span>
     <span class="badge b3">100% SICK</span>
   </div>
@@ -501,17 +510,21 @@
   const SUPABASE_ANON_KEY = "sb_publishable_c74kfqSZeukbaRJidg3PfQ_E2GNoa1p";
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const USERS = {
-    "izzywizzyletsgetbusy": { color:"#FF3E96", initial:"I" },
-    "rozza69": { color:"#29D6FF", initial:"R" }
-  };
-  const USER_ORDER = ["izzywizzyletsgetbusy", "rozza69"];
+  const AVATAR_PALETTE = ["#FF3E96","#29D6FF","#7B5CFF","#3FE07A","#FFB020","#FF6B5A","#00C2A8","#C77DFF"];
+  function colorForUser(user){
+    let hash = 0;
+    for(let i=0;i<user.length;i++){ hash = (hash*31 + user.charCodeAt(i)) >>> 0; }
+    return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+  }
+  function initialForUser(user){ return (user || '?').charAt(0).toUpperCase(); }
+
   const SKINS = ['default','glitter','hearts','camo','static'];
   const EMOJI_OPTIONS = ['😊','😂','😍','😭','😤','😴','🥳','😬','🙄','💀','😎','🥺'];
 
   let posts = [];
   let commentsByPost = {};
   let profiles = {};
+  let memberOrder = [];
   let currentUser = null;
   let currentUserId = null;
   let selectedEmoji = null;
@@ -578,24 +591,23 @@
   }
 
   function avatarInner(user){
-    const u = USERS[user] || { color:"#999", initial:"?" };
     const pic = profiles[user] && profiles[user].pic;
-    return pic ? `<img class="pfp-photo" src="${pic}" alt="">` : u.initial;
+    return pic ? `<img class="pfp-photo" src="${pic}" alt="">` : initialForUser(user);
   }
 
   function pfpHTML(user, cls, size){
-    const u = USERS[user] || { color:"#999", initial:"?" };
-    const style = size ? `style="width:${size}px;height:${size}px;font-size:${Math.floor(size*0.42)}px;background:${u.color}"` : `style="background:${u.color}"`;
+    const color = colorForUser(user);
+    const style = size ? `style="width:${size}px;height:${size}px;font-size:${Math.floor(size*0.42)}px;background:${color}"` : `style="background:${color}"`;
     return `<div class="${cls}" ${style}>${avatarInner(user)}</div>`;
   }
 
   function profilePfpHTML(user){
-    const u = USERS[user] || { color:"#999", initial:"?" };
+    const color = colorForUser(user);
     const inner = avatarInner(user);
     if(user !== currentUser){
-      return `<div class="pfp" style="width:52px;height:52px;font-size:20px;background:${u.color}">${inner}</div>`;
+      return `<div class="pfp" style="width:52px;height:52px;font-size:20px;background:${color}">${inner}</div>`;
     }
-    return `<label class="pfp pfp-upload" style="width:52px;height:52px;font-size:20px;background:${u.color}">
+    return `<label class="pfp pfp-upload" style="width:52px;height:52px;font-size:20px;background:${color}">
       ${inner}
       <span class="pfp-edit-hint">change<br>photo</span>
       <input type="file" accept="image/*" class="pfp-file-input" data-user="${user}">
@@ -623,6 +635,19 @@
   const loginError = document.getElementById('loginError');
   const sessionUser = document.getElementById('sessionUser');
   const logoutBtn = document.getElementById('logoutBtn');
+  const siteTag = document.getElementById('siteTag');
+  const navTabs = document.getElementById('navTabs');
+  const feedView = document.getElementById('feedView');
+  const profilesView = document.getElementById('profilesView');
+
+  navTabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.nav-tab');
+    if(!btn) return;
+    navTabs.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b === btn));
+    const view = btn.dataset.view;
+    feedView.style.display = view === 'feed' ? '' : 'none';
+    profilesView.style.display = view === 'profiles' ? '' : 'none';
+  });
   const notifBell = document.getElementById('notifBell');
   const notifBadge = document.getElementById('notifBadge');
   const notifPanel = document.getElementById('notifPanel');
@@ -787,8 +812,8 @@
     if(!currentUser) return;
     sessionUser.textContent = currentUser;
     const pic = profiles[currentUser] && profiles[currentUser].pic;
-    composerPfp.style.background = pic ? 'transparent' : (USERS[currentUser] ? USERS[currentUser].color : '#999');
-    composerPfp.innerHTML = pic ? `<img class="pfp-photo" src="${pic}" alt="">` : (USERS[currentUser] ? USERS[currentUser].initial : '?');
+    composerPfp.style.background = pic ? 'transparent' : colorForUser(currentUser);
+    composerPfp.innerHTML = pic ? `<img class="pfp-photo" src="${pic}" alt="">` : initialForUser(currentUser);
   }
 
   function renderOdometer(n){
@@ -811,7 +836,7 @@
       const [postsRes, commentsRes, profilesRes] = await Promise.all([
         sb.from('posts').select('*').order('created_at', { ascending:false }),
         sb.from('comments').select('*').order('created_at', { ascending:true }),
-        sb.from('profiles').select('*')
+        sb.from('profiles').select('*').order('created_at', { ascending:true })
       ]);
       posts = (postsRes.data || []).map(p => ({
         id: p.id, author: p.author, text: p.body, feeling: p.feeling, emoji: p.emoji,
@@ -825,12 +850,17 @@
         });
       });
       profiles = {};
+      memberOrder = [];
       (profilesRes.data || []).forEach(p => {
         profiles[p.username] = {
           about: p.about, mood: p.mood, theme: p.theme,
-          nowPlayingTrack: p.now_playing, pic: p.pic
+          nowPlayingTrack: p.now_playing, pic: p.pic, createdAt: p.created_at
         };
+        memberOrder.push(p.username);
       });
+      if(siteTag){
+        siteTag.textContent = `est. today · ${memberOrder.length} member${memberOrder.length===1?'':'s'}`;
+      }
     }catch(e){
       console.error("couldn't load ThePad's data", e);
     }
@@ -862,11 +892,11 @@
   }
 
   function renderProfiles(){
-    profilesEl.innerHTML = USER_ORDER.map(user => {
+    profilesEl.innerHTML = memberOrder.map(user => {
       const p = profiles[user] || { about:"", mood:"" };
-      const other = USER_ORDER.find(u => u !== user);
       const skin = p.theme || 'default';
       const playing = !!nowPlayingActive[user];
+      const joined = p.createdAt ? new Date(p.createdAt).toLocaleDateString(undefined, { month:'short', year:'numeric' }) : '';
       return `
       <div class="profile-card chrome-panel skin-${skin}">
         <div class="profile-top">
@@ -880,7 +910,7 @@
         </div>
         <div class="about-label">about me</div>
         <textarea class="about-box lcd" data-user="${user}" ${user===currentUser? '' : 'readonly'}>${escapeHTML(p.about || '')}</textarea>
-        <span class="top-friend-tag">★ top friend: ${other}</span>
+        ${joined ? `<span class="member-since-tag">★ member since ${joined}</span>` : ''}
         <div class="now-playing">
           <button type="button" class="np-btn" data-user="${user}" title="toggle vibe">${playing ? '❚❚' : '▶'}</button>
           <div class="np-eq ${playing ? 'playing' : ''}"><span></span><span></span><span></span><span></span></div>
@@ -1135,7 +1165,7 @@
     loginBtn.disabled = true; loginBtn.textContent = 'logging in…';
     const { error } = await sb.auth.signInWithPassword({ email, password });
     loginBtn.disabled = false; loginBtn.textContent = 'log in';
-    if(error){ loginError.textContent = "couldn't log in — check your email and password"; return; }
+    if(error){ loginError.textContent = "couldn't log in - check your email and password"; return; }
     await afterLogin();
   }
 
